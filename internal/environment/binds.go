@@ -1,4 +1,4 @@
-package executable
+package environment
 
 import (
 	"os/exec"
@@ -17,7 +17,9 @@ var neededBinds = []string{
 	// "etc",
 }
 
-func setupAllFileSystemBinds(rootPath string) error {
+//BindAndCopyRequiredFiles binds all the required folders and copies over the
+//the data in the folders that can not be bound.
+func BindAndCopyRequiredFiles(rootPath string) error {
 
 	for i := 0; i < len(neededBinds); i++ {
 		bindLoc := neededBinds[i]
@@ -43,7 +45,8 @@ func setupAllFileSystemBinds(rootPath string) error {
 	return nil
 }
 
-func teardownAllFileSystemBinds(rootPath string) error {
+//UnbindAll unbinds everything that was previously bound from the root.
+func UnbindAll(rootPath string) error {
 
 	for i := 0; i < len(neededBinds); i++ {
 		target := filepath.Join(rootPath, neededBinds[i])

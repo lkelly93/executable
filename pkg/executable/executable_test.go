@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/lkelly93/executable"
+	"github.com/lkelly93/pkg/executable"
 )
 
 func Test(t *testing.T) {

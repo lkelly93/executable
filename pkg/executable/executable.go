@@ -2,6 +2,8 @@ package executable
 
 import (
 	"log"
+
+	"github.com/lkelly93/executable/internal/environment"
 )
 
 //NewExecutable returns something that implements the Executable interface
@@ -19,31 +21,31 @@ func NewExecutable(lang, code string, settings *Settings) (Executable, error) {
 func (state *executableState) Run() (string, error) {
 	uniqueID := state.settings.UniqueIdentifier
 	//Setup the executable's new root file system.
-	rootPath, err := setupRunnerFileSystem(uniqueID)
+	rootPath, err := environment.SetupRunnerFileSystem(uniqueID)
 	if err != nil {
 		return "", fatalServerError(err, uniqueID)
 	}
 
 	//Bind all the needed files
-	err = setupAllFileSystemBinds(rootPath)
+	err = environment.BindAndCopyRequiredFiles(rootPath)
 	if err != nil {
 		return "", fatalServerError(err, uniqueID)
 	}
 
-	// err = cleanUp(rootPath)
-	// if err != nil {
-	// 	return "", fatalServerError(err, uniqueID)
-	// }
+	err = cleanUp(rootPath)
+	if err != nil {
+		return "", fatalServerError(err, uniqueID)
+	}
 
 	return "", nil
 }
 
 func cleanUp(rootPath string) error {
-	err := teardownAllFileSystemBinds(rootPath)
+	err := environment.UnbindAll(rootPath)
 	if err != nil {
 		return err
 	}
-	err = teardownRunnerFileSystem(rootPath)
+	err = environment.RemoveRunnerFileSystem(rootPath)
 	if err != nil {
 		return err
 	}

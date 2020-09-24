@@ -30,6 +30,7 @@ python3-pip
     #Go
     RUN go get github.com/otiai10/copy
 
+RUN mkdir /securefs
 
 COPY . /executable/
 WORKDIR /executable
