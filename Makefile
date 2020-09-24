@@ -3,7 +3,7 @@ RUN=docker run --rm=true -it --name testing --network scheduler-cluster --privil
 
 test:
 	$(BUILD)
-	$(RUN) go test .
+	$(RUN) go test ./pkg/executable
 
 it:
 	$(BUILD)
