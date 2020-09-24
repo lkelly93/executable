@@ -1,9 +1,7 @@
 package executable
 
 import (
-	"bytes"
-	"fmt"
-	"os"
+	"log"
 )
 
 //NewExecutable returns something that implements the Executable interface
@@ -32,10 +30,10 @@ func (state *executableState) Run() (string, error) {
 		return "", fatalServerError(err, uniqueID)
 	}
 
-	err = cleanUp(rootPath)
-	if err != nil {
-		return "", fatalServerError(err, uniqueID)
-	}
+	// err = cleanUp(rootPath)
+	// if err != nil {
+	// 	return "", fatalServerError(err, uniqueID)
+	// }
 
 	return "", nil
 }
@@ -54,14 +52,15 @@ func cleanUp(rootPath string) error {
 }
 
 func fatalServerError(err error, uniqueID string) error {
-	var errMessage bytes.Buffer
-	errMessage.WriteString(
-		fmt.Sprintf("Error while executing %s: - ", uniqueID),
-	)
-	errMessage.WriteString(err.Error())
-	errMessage.WriteString("\n")
-	os.Stderr.Write(errMessage.Bytes())
-	// log.Fatal(err)
-	// log.Println(err)
-	return &SystemError{}
+	// var errMessage bytes.Buffer
+	// errMessage.WriteString(
+	// 	fmt.Sprintf("Error while executing %s: - ", uniqueID),
+	// )
+	// errMessage.WriteString(err.Error())
+	// errMessage.WriteString("\n")
+	// os.Stderr.Write(errMessage.Bytes())
+	log.Println(err)
+	return &SystemError{
+		err: err,
+	}
 }

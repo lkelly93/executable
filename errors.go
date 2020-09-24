@@ -42,8 +42,12 @@ func (re *RuntimeError) Error() string {
 }
 
 //SystemError is returned as a general wrapper for any undefined errors.
-type SystemError struct{}
+type SystemError struct {
+	err error
+}
 
 func (se *SystemError) Error() string {
-	return "Error during execution of the program, check server logs"
+	return "Error during execution of the program, check server logs."
 }
+
+func (se *SystemError) Unwrap() error { return se.err }

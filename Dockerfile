@@ -27,6 +27,8 @@ python3-pip
 #Install language dependacies
     #Python
     RUN pip3 install numpy
+    #Go
+    RUN go get github.com/otiai10/copy
 
 
 COPY . /executable/

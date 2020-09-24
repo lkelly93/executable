@@ -1,6 +1,7 @@
 package executable_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/lkelly93/executable"
@@ -19,5 +20,8 @@ func Test(t *testing.T) {
 
 	if err != nil {
 		t.Error(err)
+		if _, ok := err.(*executable.SystemError); ok {
+			t.Errorf("Server Logs:\n%s\n", errors.Unwrap(err).Error())
+		}
 	}
 }
