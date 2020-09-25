@@ -82,16 +82,18 @@ func (se *SystemError) Is(err error) bool {
 
 func (se *SystemError) Unwrap() error { return se.Err }
 
-type MalformedUniqueIdentifier struct {
+//IllegalUniqueIdentifier is the error returned if NewExecutable receives an
+//illegal uniqueIdentifier
+type IllegalUniqueIdentifier struct {
 	ErrMessage string
 }
 
-func (mui *MalformedUniqueIdentifier) Error() string {
-	return mui.ErrMessage
+func (iui *IllegalUniqueIdentifier) Error() string {
+	return iui.ErrMessage
 }
 
-//Is Returns true if the given error is a MalformedUniqueIdentifier
-func (se *MalformedUniqueIdentifier) Is(err error) bool {
-	_, ok := err.(*MalformedUniqueIdentifier)
+//Is Returns true if the given error is a IllegalUniqueIdentifier
+func (iui *IllegalUniqueIdentifier) Is(err error) bool {
+	_, ok := err.(*IllegalUniqueIdentifier)
 	return ok
 }

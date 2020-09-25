@@ -49,7 +49,7 @@ func TestEmptyIdentifier(t *testing.T) {
 		t.Errorf("NewExecutable accepted an empty string as a uniqueIdentifier.")
 	}
 
-	expected := &executable.MalformedUniqueIdentifier{}
+	expected := &executable.IllegalUniqueIdentifier{}
 	if !errors.Is(err, expected) {
 		t.Errorf("Expected %T but got %T", expected, err)
 	}

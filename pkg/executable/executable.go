@@ -24,7 +24,7 @@ import (
 //unique it could cause a data race and/or unknown behavior.
 func NewExecutable(lang, code, uniqueIdentifier string) (Executable, error) {
 	if len(uniqueIdentifier) == 0 {
-		return nil, &MalformedUniqueIdentifier{
+		return nil, &IllegalUniqueIdentifier{
 			ErrMessage: "The field \"uniqueIdentifier\" cannot be empty.",
 		}
 	}
