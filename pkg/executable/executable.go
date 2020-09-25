@@ -59,10 +59,9 @@ func (state *executableState) Run() (string, error) {
 		return "", fatalServerError(err, uniqueID)
 	}
 
-	timeoutInSeconds := 15
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
-		time.Duration(timeoutInSeconds)*time.Second,
+		time.Duration(MaxExecutableRunTime)*time.Second,
 	)
 	defer cancel()
 
@@ -112,7 +111,7 @@ func (state *executableState) Run() (string, error) {
 		if errCleanup := cleanUp(rootPath); errCleanup != nil {
 			return output, fatalServerError(errCleanup, uniqueID)
 		}
-		return output, &TimeLimitExceededError{MaxTime: timeoutInSeconds}
+		return output, &TimeLimitExceededError{MaxTime: MaxExecutableRunTime}
 	}
 	if err != nil {
 		log.Println(err)
