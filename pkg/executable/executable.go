@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"syscall"
 	"time"
 
@@ -94,36 +95,37 @@ func (state *executableState) Run() (string, error) {
 	}
 
 	err = cmd.Run()
+	output, outputErr := getOutput(stdOut, stdErr)
 	checkLoggerFile(rootPath)
 
 	//Parse output and check for all possible errors
 	if ctx.Err() == context.DeadlineExceeded {
 		log.Println(err)
 		if errCleanup := cleanUp(rootPath); errCleanup != nil {
-			return stdOut.String(), fatalServerError(errCleanup, uniqueID)
+			return output, fatalServerError(errCleanup, uniqueID)
 		}
-		return stdOut.String(), &TimeLimitExceededError{maxTime: timeoutInSeconds}
+		return output, &TimeLimitExceededError{maxTime: timeoutInSeconds}
 	}
 	if err != nil {
 		log.Println(err)
 		if errCleanup := cleanUp(rootPath); errCleanup != nil {
-			return stdOut.String(), fatalServerError(errCleanup, uniqueID)
+			return output, fatalServerError(errCleanup, uniqueID)
 		}
-		return stdOut.String(), &RuntimeError{errMessage: err.Error()}
+		return output, &RuntimeError{errMessage: err.Error()}
 	}
 
 	if stdErr.Len() != 0 {
 		if errCleanup := cleanUp(rootPath); errCleanup != nil {
-			return stdOut.String(), fatalServerError(errCleanup, uniqueID)
+			return output, fatalServerError(errCleanup, uniqueID)
 		}
-		return stdOut.String(), &RuntimeError{errMessage: stdErr.String()}
+		return output, &RuntimeError{errMessage: outputErr}
 	}
 
 	if errCleanup := cleanUp(rootPath); errCleanup != nil {
-		return stdOut.String(), fatalServerError(errCleanup, uniqueID)
+		return output, fatalServerError(errCleanup, uniqueID)
 	}
 
-	return stdOut.String(), nil
+	return output, nil
 }
 
 func setup(uniqueID string) (string, error) {
@@ -176,4 +178,27 @@ func checkLoggerFile(rootPath string) {
 	}
 
 	os.RemoveAll(fileLoc)
+}
+
+func parseOutput(message []byte) string {
+	//Remove unneeded time stamp.
+	regex, err := regexp.Compile("[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}")
+	if err != nil {
+		log.Fatal("Could not compile regex expression.")
+	}
+
+	return string(regex.ReplaceAll(message, []byte("")))
+}
+
+func getOutput(stdOut, stdErr bytes.Buffer) (string, string) {
+	var out string = ""
+	var err string = ""
+	if stdOut.Len() != 0 {
+		out = parseOutput(stdOut.Bytes())
+	}
+	if stdErr.Len() != 0 {
+		err = parseOutput(stdErr.Bytes())
+	}
+
+	return out, err
 }

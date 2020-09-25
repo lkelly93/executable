@@ -27,9 +27,10 @@ func BindAndCopyRequiredFiles(rootPath string) error {
 			"mount",
 			//Recursively bind these folders to the destination
 			"--rbind",
-			//Make it so changes to destination folder are not reflected
-			//in source folder.
+			//Make it so this file system can't be cloned
 			"--make-runbindable",
+			//Make it so the running code can't write to the root file system
+			"--read-only",
 			filepath.Join("/", bindLoc),
 			filepath.Join(rootPath, bindLoc),
 		)

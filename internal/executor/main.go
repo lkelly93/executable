@@ -52,8 +52,8 @@ func initContainerAndRunProgram() {
 
 }
 
-func runProgramInContainer(sysCommand string, fileLocation string) {
-	cmd := exec.Command(sysCommand, fileLocation)
+func runProgramInContainer(sysCommand string, fileName string) {
+	cmd := exec.Command(sysCommand, fileName)
 
 	var stdErr bytes.Buffer
 	var stdOut bytes.Buffer
@@ -64,10 +64,12 @@ func runProgramInContainer(sysCommand string, fileLocation string) {
 	err := cmd.Run()
 
 	if err != nil || stdErr.Len() != 0 {
-		log.Print(stdErr.String())
-		// log.Print(parseOutput(stdErr.String(), fileLocation, fileNamePrefix))
+		log.Print(parseOutput(stdErr.String()))
 	}
 
-	fmt.Print(stdOut.String())
-	// fmt.Print(parseOutput(stdOut.String(), fileLocation, fileNamePrefix))
+	fmt.Print(parseOutput(stdOut.String()))
+}
+
+func parseOutput(message string) string {
+	return strings.ReplaceAll(message, "/runner_files/", "")
 }

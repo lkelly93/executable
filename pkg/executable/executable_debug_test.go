@@ -11,7 +11,7 @@ import (
 
 func TestDebug(t *testing.T) {
 	lang := "python"
-	code := "import os\nos.system(\"cat /proc/mounts\")"
+	code := "print(\"Hello World"
 	uniqueIdentifier := "IntialTester"
 
 	exe, _ := executable.NewExecutable(lang, code, uniqueIdentifier)
