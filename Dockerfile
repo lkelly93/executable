@@ -34,4 +34,3 @@ RUN mkdir /securefs
 
 COPY . /executable/
 WORKDIR /executable
-

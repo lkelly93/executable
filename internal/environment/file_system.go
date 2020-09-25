@@ -29,6 +29,7 @@ func SetupRunnerFileSystem(rootName string) (string, error) {
 		"sys",
 		"dev",
 		"proc",
+		"log",
 		"runner_files",
 	}
 

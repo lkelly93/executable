@@ -25,7 +25,11 @@ func BindAndCopyRequiredFiles(rootPath string) error {
 		bindLoc := neededBinds[i]
 		err := runCommand(
 			"mount",
+			//Recursively bind these folders to the destination
 			"--rbind",
+			//Make it so changes to destination folder are not reflected
+			//in source folder.
+			"--make-runbindable",
 			filepath.Join("/", bindLoc),
 			filepath.Join(rootPath, bindLoc),
 		)
