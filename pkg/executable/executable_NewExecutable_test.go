@@ -1,6 +1,7 @@
 package executable_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/lkelly93/executable/pkg/executable"
@@ -30,8 +31,26 @@ func TestNewExecutableFail(t *testing.T) {
 	if err == nil {
 		t.Errorf("\"%s\" was accepted as a supported langauge and should not be.", lang)
 	} else {
-		if _, ok := err.(*executable.UnsupportedLanguageError); !ok {
-			t.Errorf("Expected *executable.UnsupportedLanguageError but got %T", err)
+		expected := &executable.UnsupportedLanguageError{}
+		if !errors.Is(err, expected) {
+			t.Errorf("Expected %T but got %T", expected, err)
 		}
+	}
+}
+
+func TestEmptyIdentifier(t *testing.T) {
+	t.Parallel()
+	lang := "python"
+	code := "print(\"Hello World\")"
+
+	_, err := executable.NewExecutable(lang, code, "")
+
+	if err == nil {
+		t.Errorf("NewExecutable accepted an empty string as a uniqueIdentifier.")
+	}
+
+	expected := &executable.MalformedUniqueIdentifier{}
+	if !errors.Is(err, expected) {
+		t.Errorf("Expected %T but got %T", expected, err)
 	}
 }

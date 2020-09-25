@@ -19,7 +19,15 @@ import (
 //NewExecutable returns something that implements the Executable interface
 //If the given language is not supported NewExecutable will throw an error.
 //If Settings is nil the default settings will be used for that language
+//A uniqueIdentifier is required, this package does not check if it is actually
+//unique but you must give a non-empty string as an argument. If it is not
+//unique it could cause a data race and/or unknown behavior.
 func NewExecutable(lang, code, uniqueIdentifier string) (Executable, error) {
+	if len(uniqueIdentifier) == 0 {
+		return nil, &MalformedUniqueIdentifier{
+			ErrMessage: "The field \"uniqueIdentifier\" cannot be empty.",
+		}
+	}
 	runner := runners.GetRunner(lang)
 	if runner != nil {
 		return &executableState{
@@ -30,7 +38,7 @@ func NewExecutable(lang, code, uniqueIdentifier string) (Executable, error) {
 		}, nil
 	}
 
-	return nil, &UnsupportedLanguageError{lang: lang}
+	return nil, &UnsupportedLanguageError{Lang: lang}
 }
 
 //Run TODO: COMMENT
@@ -104,21 +112,21 @@ func (state *executableState) Run() (string, error) {
 		if errCleanup := cleanUp(rootPath); errCleanup != nil {
 			return output, fatalServerError(errCleanup, uniqueID)
 		}
-		return output, &TimeLimitExceededError{maxTime: timeoutInSeconds}
+		return output, &TimeLimitExceededError{MaxTime: timeoutInSeconds}
 	}
 	if err != nil {
 		log.Println(err)
 		if errCleanup := cleanUp(rootPath); errCleanup != nil {
 			return output, fatalServerError(errCleanup, uniqueID)
 		}
-		return output, &RuntimeError{errMessage: err.Error()}
+		return output, &RuntimeError{ErrMessage: err.Error()}
 	}
 
 	if stdErr.Len() != 0 {
 		if errCleanup := cleanUp(rootPath); errCleanup != nil {
 			return output, fatalServerError(errCleanup, uniqueID)
 		}
-		return output, &RuntimeError{errMessage: outputErr}
+		return output, &RuntimeError{ErrMessage: outputErr}
 	}
 
 	if errCleanup := cleanUp(rootPath); errCleanup != nil {
@@ -159,7 +167,7 @@ func cleanUp(rootPath string) error {
 func fatalServerError(err error, uniqueID string) error {
 	log.Println(err)
 	return &SystemError{
-		err: err,
+		Err: err,
 	}
 }
 
@@ -182,7 +190,7 @@ func checkLoggerFile(rootPath string) {
 
 func parseOutput(message []byte) string {
 	//Remove unneeded time stamp.
-	regex, err := regexp.Compile("[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}")
+	regex, err := regexp.Compile("[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} ")
 	if err != nil {
 		log.Fatal("Could not compile regex expression.")
 	}

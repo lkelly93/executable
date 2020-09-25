@@ -54,7 +54,7 @@ func SetupRunnerFileSystem(rootName string) (string, error) {
 	return rootPath, nil
 }
 
-//RemoveRunnerFileSystem deltes the file at /securesfs/xxxx.
+//RemoveRunnerFileSystem deletes the file at /securesfs/xxxx.
 //WARNING: Do not call this method if you have anything mounted to this location
 //doing so could cause unwanted behavior and/or break your root file system.
 //rootPath is the absolute path to the folder you want removed. It should be

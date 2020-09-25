@@ -35,20 +35,50 @@ func TestFileIsDeletedAfterRun(t *testing.T) {
 
 }
 
-func assertEquals(expected string, actual string, t *testing.T) {
+func assertEquals(expected, actual string, t *testing.T) {
 	t.Helper()
-	if actual != expected {
-		i := 0
-		var expectedChar byte
-		var actualChar byte
-		for ; i < len(expected) && i < len(actual); i++ {
-			if expected[i] != actual[i] {
-				expectedChar = expected[i]
-				actualChar = actual[i]
-				break
-			}
-		}
+	problemIndex := findError(expected, actual)
+	if problemIndex > 0 {
+		expectedChar := getChar(expected, problemIndex)
+		actualChar := getChar(actual, problemIndex)
 		t.Errorf("Expected:\n\"%s\"\nbut got\n\"%s\"", expected, actual)
-		t.Errorf("Error at index %d, expected %c but was %c", i, expectedChar, actualChar)
+		t.Errorf(
+			"Error at index %d, expected %c but was %c",
+			problemIndex,
+			expectedChar,
+			actualChar,
+		)
 	}
+}
+
+func findError(expected, actual string) int {
+	lenExpected := len(expected)
+	lenActual := len(actual)
+
+	if lenActual != lenExpected {
+		return min(lenActual, lenExpected)
+	}
+
+	for i := 0; i < lenExpected && i < lenActual; i++ {
+		if expected[i] != actual[i] {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func getChar(s string, index int) byte {
+	if index >= len(s) {
+		return 0
+	}
+
+	return s[index]
 }

@@ -19,6 +19,6 @@ func TestPutFileInBin(t *testing.T) {
 
 	_, err = exe.Run()
 
-	expected := " mkdir: cannot create directory ‘/bin/THIS_SHOULD_NOT_BE_HERE’: Read-only file system\n"
+	expected := "mkdir: cannot create directory ‘/bin/THIS_SHOULD_NOT_BE_HERE’: Read-only file system\n"
 	assertEquals(expected, err.Error(), t)
 }
