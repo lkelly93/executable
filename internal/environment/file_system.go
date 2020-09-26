@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-//SetupRunnerFileSystem sets up a file system in /securefs/. It assumes that
-//the file /securefs/ already exists.
+//setupRunnerFileSystem sets up a skeleton file system in /securefs/.
+//It assumes that the file /securefs/ already exists.
 //The paramater "rootName" should be the name of the folder you want created
 //This method returns the absolute path to the file system and an error if it
 //encounters any problems setting up the file system.
-func SetupRunnerFileSystem(rootName string) (string, error) {
+func setupRunnerFileSystem(rootName string) (string, error) {
 
 	var neededFiles = []string{
 		"bin",
@@ -54,11 +54,11 @@ func SetupRunnerFileSystem(rootName string) (string, error) {
 	return rootPath, nil
 }
 
-//RemoveRunnerFileSystem deletes the file at /securesfs/xxxx.
+//removeRunnerFileSystem deletes the file at /securesfs/xxxx.
 //WARNING: Do not call this method if you have anything mounted to this location
 //doing so could cause unwanted behavior and/or break your root file system.
 //rootPath is the absolute path to the folder you want removed. It should be
 //safe to pass in the string you received from SetupRunnerFileSystem .
-func RemoveRunnerFileSystem(rootPath string) error {
+func removeRunnerFileSystem(rootPath string) error {
 	return os.RemoveAll(rootPath)
 }

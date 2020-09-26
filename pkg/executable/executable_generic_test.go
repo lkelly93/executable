@@ -8,11 +8,11 @@ import (
 	"github.com/lkelly93/executable/pkg/executable"
 )
 
-func TestFileIsDeletedAfterRun(t *testing.T) {
+func TestFileSystemAreDeletedAfterRun(t *testing.T) {
 	t.Parallel()
 	lang := "python"
 	code := "print(\"Hello World!\")"
-	uniqueIdentifier := "TestFileIsDeletedAfterRun"
+	uniqueIdentifier := "TestFileSystemAreDeletedAfterRun"
 
 	exe, err := executable.NewExecutable(lang, code, uniqueIdentifier)
 	if err != nil {
@@ -21,6 +21,31 @@ func TestFileIsDeletedAfterRun(t *testing.T) {
 
 	fileLocation := filepath.Join("/securefs", uniqueIdentifier)
 
+	_, err = os.Stat(fileLocation)
+	if err == nil {
+		t.Errorf("%s existed before Run() was called", fileLocation)
+	}
+
+	exe.Run()
+
+	_, err = os.Stat(fileLocation)
+	if err == nil {
+		t.Errorf("%s still exists after Run() was called. It should of been deleted", fileLocation)
+	}
+
+}
+func TestCGroupFilesAreDeletedAfterRun(t *testing.T) {
+	t.Parallel()
+	lang := "python"
+	code := "print(\"Hello World!\")"
+	uniqueIdentifier := "TestCGroupFilesAreDeletedAfterRun"
+
+	exe, err := executable.NewExecutable(lang, code, uniqueIdentifier)
+	if err != nil {
+		t.Fatalf("NewExecutable failed with a supported language %s", lang)
+	}
+
+	fileLocation := filepath.Join("/sys/fs/cgroups/pids", uniqueIdentifier)
 	_, err = os.Stat(fileLocation)
 	if err == nil {
 		t.Errorf("%s existed before Run() was called", fileLocation)

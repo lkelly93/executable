@@ -3,27 +3,33 @@
 package executable_test
 
 import (
+	"errors"
 	"testing"
+
+	"github.com/lkelly93/executable/pkg/executable"
 )
 
 func TestDebug(t *testing.T) {
-	assertEquals("Hello", "Hell", t)
-	// lang := "python"
-	// code := "print(\"Hello World"
-	// uniqueIdentifier := "IntialTester"
+	lang := "python"
+	code := "import os\nos.system(\"bomb() { bomb | bomb & }; bomb\")"
+	// code := "import time\ntime.sleep(13)"
+	// code := "import os\nos.system(\"cat /sys/fs/cgroup/pids/IntialTester/cgroup.procs\")"
+	// code := "import os\nos.system(\"ls -l /\")"
+	// code := "import os\nos.system(\"cat /proc/mounts\")"
+	uniqueIdentifier := "IntialTester"
 
-	// exe, _ := executable.NewExecutable(lang, code, uniqueIdentifier)
+	exe, _ := executable.NewExecutable(lang, code, uniqueIdentifier)
 
-	// _, err := exe.Run()
+	out, err := exe.Run()
 
-	// if err != nil {
-	// t.Errorf("Error:%s\nError Type:%T\n", err.Error(), err)
-	// var expectedErr = &executable.RuntimeError{}
-	// t.Error(errors.Is(err, expectedErr))
-	// if _, ok := err.(*executable.SystemError); ok {
-	// 	t.Errorf("Server Logs:\n%s\n", errors.Unwrap(err).Error())
-	// }
-	// }
+	if err != nil {
+		t.Errorf("Error:%s\nError Type:%T\n", err.Error(), err)
+		if errors.Is(err, &executable.SystemError{}) {
+			t.Errorf("Server Logs:\n%s\n", errors.Unwrap(err).Error())
+		}
+	}
 
-	// t.Errorf("Output:\n%s", out)
+	if len(out) != 0 {
+		t.Errorf("Output:\n%s", out)
+	}
 }

@@ -18,7 +18,6 @@ import (
 
 //NewExecutable returns something that implements the Executable interface
 //If the given language is not supported NewExecutable will throw an error.
-//If Settings is nil the default settings will be used for that language
 //A uniqueIdentifier is required, this package does not check if it is actually
 //unique but you must give a non-empty string as an argument. If it is not
 //unique it could cause a data race and/or unknown behavior.
@@ -41,11 +40,13 @@ func NewExecutable(lang, code, uniqueIdentifier string) (Executable, error) {
 	return nil, &UnsupportedLanguageError{Lang: lang}
 }
 
-//Run TODO: COMMENT
+//Run will run the executable in a secure container. It returns the output
+//of the program and/or an error. See errors.go for more all the possible
+//errors it can return.
 func (state *executableState) Run() (string, error) {
 	uniqueID := state.uniqueIdentifier
 	//Setup the executable's new root file system.
-	rootPath, err := setup(uniqueID)
+	envData, err := environment.Setup(uniqueID)
 	if err != nil {
 		return "", fatalServerError(err, uniqueID)
 	}
@@ -53,7 +54,7 @@ func (state *executableState) Run() (string, error) {
 	//Create the runner file.
 	sysCommand, fileName, err := state.runner.CreateFile(
 		state.code,
-		filepath.Join(rootPath, "runner_files"),
+		filepath.Join(envData.RootPath, "runner_files"),
 	)
 	if err != nil {
 		return "", fatalServerError(err, uniqueID)
@@ -68,7 +69,8 @@ func (state *executableState) Run() (string, error) {
 	cmd := exec.CommandContext(
 		ctx,
 		"executor",
-		rootPath,
+		envData.RootPath,
+		uniqueID,
 		sysCommand,
 		fileName,
 	)
@@ -103,64 +105,36 @@ func (state *executableState) Run() (string, error) {
 
 	err = cmd.Run()
 	output, outputErr := getOutput(stdOut, stdErr)
-	checkLoggerFile(rootPath)
+	checkLoggerFile(envData.RootPath)
 
 	//Parse output and check for all possible errors
 	if ctx.Err() == context.DeadlineExceeded {
 		log.Println(err)
-		if errCleanup := cleanUp(rootPath); errCleanup != nil {
+		if errCleanup := envData.CleanUp(); errCleanup != nil {
 			return output, fatalServerError(errCleanup, uniqueID)
 		}
 		return output, &TimeLimitExceededError{MaxTime: MaxExecutableRunTime}
 	}
 	if err != nil {
 		log.Println(err)
-		if errCleanup := cleanUp(rootPath); errCleanup != nil {
+		if errCleanup := envData.CleanUp(); errCleanup != nil {
 			return output, fatalServerError(errCleanup, uniqueID)
 		}
 		return output, &RuntimeError{ErrMessage: err.Error()}
 	}
 
 	if stdErr.Len() != 0 {
-		if errCleanup := cleanUp(rootPath); errCleanup != nil {
+		if errCleanup := envData.CleanUp(); errCleanup != nil {
 			return output, fatalServerError(errCleanup, uniqueID)
 		}
 		return output, &RuntimeError{ErrMessage: outputErr}
 	}
 
-	if errCleanup := cleanUp(rootPath); errCleanup != nil {
+	if errCleanup := envData.CleanUp(); errCleanup != nil {
 		return output, fatalServerError(errCleanup, uniqueID)
 	}
 
 	return output, nil
-}
-
-func setup(uniqueID string) (string, error) {
-	//Setup required file system
-	rootPath, err := environment.SetupRunnerFileSystem(uniqueID)
-	if err != nil {
-		return "", err
-	}
-
-	// Bind all the needed files
-	err = environment.BindAndCopyRequiredFiles(rootPath)
-	if err != nil {
-		return "", err
-	}
-
-	return rootPath, nil
-}
-
-func cleanUp(rootPath string) error {
-	err := environment.UnbindAll(rootPath)
-	if err != nil {
-		return err
-	}
-	err = environment.RemoveRunnerFileSystem(rootPath)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func fatalServerError(err error, uniqueID string) error {

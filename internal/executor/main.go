@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 4 {
+	if len(os.Args) != 5 {
 		var message strings.Builder
 		message.WriteString("This file should only be run through the executable package. ")
 		message.WriteString("Failure to do so could cause damage to the system it is running on.\n")
@@ -24,10 +24,13 @@ func main() {
 
 func initContainerAndRunProgram() {
 	rootPath := os.Args[1]
+	rootName := os.Args[2]
+	sysCommand := os.Args[3]
+	fileName := os.Args[4]
 
-	sysCommand := os.Args[2]
-	fileName := os.Args[3]
-
+	if err := addPIDtoCGroup(rootName); err != nil {
+		serverFatalBeforeChroot(rootPath, err)
+	}
 	err := syscall.Chroot(rootPath)
 	if err != nil {
 		serverFatalBeforeChroot(rootPath, err)
@@ -49,7 +52,6 @@ func initContainerAndRunProgram() {
 		sysCommand,
 		filepath.Join("/runner_files", fileName),
 	)
-
 }
 
 func runProgramInContainer(sysCommand string, fileName string) {
