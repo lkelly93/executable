@@ -44,11 +44,11 @@ func NewExecutable(lang, code, uniqueIdentifier string) (Executable, error) {
 //of the program and/or an error. See errors.go for more all the possible
 //errors it can return.
 func (state *executableState) Run() (string, error) {
-	uniqueID := state.uniqueIdentifier
+	rootName := state.uniqueIdentifier
 	//Setup the executable's new root file system.
-	envData, err := environment.Setup(uniqueID)
+	envData, err := environment.Setup(rootName)
 	if err != nil {
-		return "", fatalServerError(err, uniqueID)
+		return "", fatalServerError(err, rootName)
 	}
 
 	//Create the runner file.
@@ -57,7 +57,7 @@ func (state *executableState) Run() (string, error) {
 		filepath.Join(envData.RootPath, "runner_files"),
 	)
 	if err != nil {
-		return "", fatalServerError(err, uniqueID)
+		return "", fatalServerError(err, rootName)
 	}
 
 	//Create context with a timeout.
@@ -72,7 +72,7 @@ func (state *executableState) Run() (string, error) {
 		ctx,              //The context with timeout
 		"executor",       //The executor binary that is located at /internal/exector
 		envData.RootPath, //The path to root so executor can chroot
-		uniqueID,         //This executables uniqueID is used for some setup in executor
+		rootName,         //This executables uniqueID is used for some setup in executor
 		sysCommand,       //The command that executor should use to run the file
 		fileName,         //The file name. It should be in /securefs/{uniqueID}/runner_files
 	)
@@ -111,6 +111,10 @@ func (state *executableState) Run() (string, error) {
 
 	//Run the executable
 	err = cmd.Run()
+	// usage, err := cgroup.GetMemoryUsage(rootName)
+	// if err == nil {
+	// 	log.Printf("Memory Usage:%sB\n", usage)
+	// }
 
 	//Parse the output after run
 	output, outputErr := getOutput(stdOut, stdErr)
@@ -130,7 +134,7 @@ func (state *executableState) Run() (string, error) {
 	}
 
 	if errCleanup := envData.CleanUp(); errCleanup != nil {
-		return output, fatalServerError(errCleanup, uniqueID)
+		return output, fatalServerError(errCleanup, rootName)
 	}
 	return output, errorOutput
 }

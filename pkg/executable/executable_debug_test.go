@@ -14,9 +14,9 @@ func TestDebug(t *testing.T) {
 	// code := "import os\nos.system(\"bomb() { bomb | bomb & }; bomb\")"
 	// code := "import time\ntime.sleep(13)"
 	// code := "import os\nos.system(\"cat /sys/fs/cgroup/pids/IntialTester/cgroup.procs\")"
-	code := "import os\nos.system(\"print(\"Hello\")"
+	code := "list = list(range(0,100000))\nprint(len(list))"
 	// code := "import os\nos.system(\"cat /proc/mounts\")"
-	uniqueIdentifier := "IntialTester"
+	uniqueIdentifier := "TestDebug"
 
 	exe, _ := executable.NewExecutable(lang, code, uniqueIdentifier)
 
@@ -29,7 +29,7 @@ func TestDebug(t *testing.T) {
 		}
 	}
 
-	if len(out) != 0 {
-		t.Errorf("Output:\n%s", out)
-	}
+	// if len(out) != 0 {
+	t.Errorf("Output:\n%s", out)
+	// }
 }

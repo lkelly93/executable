@@ -7,8 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/lkelly93/executable/internal/cgroup"
 )
 
 func main() {
@@ -28,10 +31,12 @@ func initContainerAndRunProgram() {
 	sysCommand := os.Args[3]
 	fileName := os.Args[4]
 
-	if err := addPIDtoCGroup(rootName); err != nil {
+	err := cgroup.AddPIDToCGroup(rootName, []byte(strconv.Itoa(os.Getpid())))
+	if err != nil {
 		serverFatalBeforeChroot(rootPath, err)
 	}
-	err := syscall.Chroot(rootPath)
+
+	err = syscall.Chroot(rootPath)
 	if err != nil {
 		serverFatalBeforeChroot(rootPath, err)
 	}

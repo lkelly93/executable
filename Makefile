@@ -1,9 +1,10 @@
 BUILD=docker build --rm -q -f "Dockerfile" -t executable_tester:latest "."
 RUN=docker run --rm=true -it --name testing --network scheduler-cluster --privileged executable_tester:latest
 INSTALL=go install ./internal/executor
-RUNTESTALL=go test -tags debug ./...
-RUNTESTSHORT=go test -tags debug,longTests ./...
-RUNDEBUG=go test ./pkg/executable -run ^TestDebug
+GOTEST=go test -count=1
+RUNTESTALL=$(GOTEST) -tags debug ./...
+RUNTESTSHORT=$(GOTEST) -tags debug,longTests ./...
+RUNDEBUG=$(GOTEST) ./pkg/executable -run ^TestDebug
 
 testAll:
 	$(BUILD)

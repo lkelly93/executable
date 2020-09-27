@@ -1,5 +1,7 @@
 package environment
 
+import "github.com/lkelly93/executable/internal/cgroup"
+
 //Setup sets up the running environment for a given executable
 func Setup(rootName string) (*EnvironmentData, error) {
 	ed := &EnvironmentData{rootName: rootName}
@@ -13,7 +15,7 @@ func Setup(rootName string) (*EnvironmentData, error) {
 		return ed, err
 	}
 
-	if err = setupAllCGroupsFS(rootName); err != nil {
+	if err = cgroup.Setup(rootName); err != nil {
 		return ed, err
 	}
 
@@ -32,7 +34,7 @@ func (ed *EnvironmentData) CleanUp() error {
 		return err
 	}
 
-	err = tearDownAllCgroupFS(ed.rootName)
+	err = cgroup.Cleanup(ed.rootName)
 	if err != nil {
 		return err
 	}
