@@ -60,33 +60,39 @@ func (state *executableState) Run() (string, error) {
 		return "", fatalServerError(err, uniqueID)
 	}
 
+	//Create context with a timeout.
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
 		time.Duration(MaxExecutableRunTime)*time.Second,
 	)
 	defer cancel()
 
+	//Create command to be run.
 	cmd := exec.CommandContext(
-		ctx,
-		"executor",
-		envData.RootPath,
-		uniqueID,
-		sysCommand,
-		fileName,
+		ctx,              //The context with timeout
+		"executor",       //The executor binary that is located at /internal/exector
+		envData.RootPath, //The path to root so executor can chroot
+		uniqueID,         //This executables uniqueID is used for some setup in executor
+		sysCommand,       //The command that executor should use to run the file
+		fileName,         //The file name. It should be in /securefs/{uniqueID}/runner_files
 	)
 
+	//Catch the std[out|err] of the executable after when we run it
 	var stdOut bytes.Buffer
 	cmd.Stdout = &stdOut
 	var stdErr bytes.Buffer
 	cmd.Stderr = &stdErr
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
+		//Setup a new namespace for this executable
 		Cloneflags: syscall.CLONE_NEWNS |
 			syscall.CLONE_NEWUTS |
 			syscall.CLONE_NEWIPC |
 			syscall.CLONE_NEWPID |
 			syscall.CLONE_NEWNET |
 			syscall.CLONE_NEWUSER,
+
+		//Setup the user name space
 		UidMappings: []syscall.SysProcIDMap{
 			{
 				ContainerID: 0,
@@ -103,38 +109,30 @@ func (state *executableState) Run() (string, error) {
 		},
 	}
 
+	//Run the executable
 	err = cmd.Run()
-	output, outputErr := getOutput(stdOut, stdErr)
-	checkLoggerFile(envData.RootPath)
 
-	//Parse output and check for all possible errors
-	if ctx.Err() == context.DeadlineExceeded {
-		log.Println(err)
-		if errCleanup := envData.CleanUp(); errCleanup != nil {
-			return output, fatalServerError(errCleanup, uniqueID)
-		}
-		return output, &TimeLimitExceededError{MaxTime: MaxExecutableRunTime}
-	}
+	//Parse the output after run
+	output, outputErr := getOutput(stdOut, stdErr)
+	//Check if executor had a logger file. If so send it to log.Print
+	checkLoggerFile(envData.RootPath)
+	//Print the error to log if it exists.
 	if err != nil {
 		log.Println(err)
-		if errCleanup := envData.CleanUp(); errCleanup != nil {
-			return output, fatalServerError(errCleanup, uniqueID)
-		}
-		return output, &RuntimeError{ErrMessage: err.Error()}
 	}
 
-	if stdErr.Len() != 0 {
-		if errCleanup := envData.CleanUp(); errCleanup != nil {
-			return output, fatalServerError(errCleanup, uniqueID)
-		}
-		return output, &RuntimeError{ErrMessage: outputErr}
+	//Figure out what type of error was returned
+	var errorOutput error
+	if ctx.Err() == context.DeadlineExceeded {
+		errorOutput = &TimeLimitExceededError{MaxTime: MaxExecutableRunTime}
+	} else if stdErr.Len() != 0 {
+		errorOutput = &RuntimeError{ErrMessage: outputErr}
 	}
 
 	if errCleanup := envData.CleanUp(); errCleanup != nil {
 		return output, fatalServerError(errCleanup, uniqueID)
 	}
-
-	return output, nil
+	return output, errorOutput
 }
 
 func fatalServerError(err error, uniqueID string) error {

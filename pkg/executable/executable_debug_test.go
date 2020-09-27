@@ -14,7 +14,7 @@ func TestDebug(t *testing.T) {
 	// code := "import os\nos.system(\"bomb() { bomb | bomb & }; bomb\")"
 	// code := "import time\ntime.sleep(13)"
 	// code := "import os\nos.system(\"cat /sys/fs/cgroup/pids/IntialTester/cgroup.procs\")"
-	code := "import os\nos.system(\"ls -l /sys/fs/cgroup\")"
+	code := "import os\nos.system(\"print(\"Hello\")"
 	// code := "import os\nos.system(\"cat /proc/mounts\")"
 	uniqueIdentifier := "IntialTester"
 
