@@ -10,7 +10,7 @@ import (
 	"github.com/lkelly93/executable/pkg/executable"
 )
 
-type RunTestData struct {
+type TestRunData struct {
 	lang             string
 	code             string
 	uniqueIdentifier string
@@ -19,7 +19,7 @@ type RunTestData struct {
 }
 
 func TestRunPythonCode(t *testing.T) {
-	test := RunTestData{
+	test := TestRunData{
 		lang:             "python",
 		code:             "print(\"Hello World\")",
 		uniqueIdentifier: "TestRunPythonCode",
@@ -29,7 +29,7 @@ func TestRunPythonCode(t *testing.T) {
 }
 
 func TestRunJavaCode(t *testing.T) {
-	test := RunTestData{
+	test := TestRunData{
 		lang:             "java",
 		code:             "public static void main(String[] args){System.out.println(\"Hello World\");}",
 		uniqueIdentifier: "TestRunJavaCode",
@@ -39,7 +39,7 @@ func TestRunJavaCode(t *testing.T) {
 }
 
 func TestRunPythonCodeLargerFile(t *testing.T) {
-	test := RunTestData{
+	test := TestRunData{
 		lang:             "python",
 		code:             getFileData("longPythonCode.py", t),
 		uniqueIdentifier: "TestRunPythonCodeLargerFile",
@@ -49,7 +49,7 @@ func TestRunPythonCodeLargerFile(t *testing.T) {
 }
 
 func TestRunJavaCodeLargerFile(t *testing.T) {
-	test := RunTestData{
+	test := TestRunData{
 		lang:             "java",
 		code:             getFileData("longJavaCode.java", t),
 		uniqueIdentifier: "TestRunJavaCodeLargerFile",
@@ -59,7 +59,7 @@ func TestRunJavaCodeLargerFile(t *testing.T) {
 }
 
 func TestRecursion(t *testing.T) {
-	test := RunTestData{
+	test := TestRunData{
 		lang:             "java",
 		code:             getFileData("recursiveCode.java", t),
 		uniqueIdentifier: "TestRecursion",
@@ -79,7 +79,7 @@ func TestRunBadJavaCode(t *testing.T) {
 	expected.WriteString("2 errors\n")
 	expected.WriteString("error: compilation failed\n")
 
-	test := RunTestData{
+	test := TestRunData{
 		lang:             "java",
 		code:             "public static void main(String[] args){System.out.println(\"Hello World\")",
 		uniqueIdentifier: "TestRunBadJavaCode",
@@ -99,7 +99,7 @@ func TestRunBadPythonCode(t *testing.T) {
 	expected.WriteString("            ^\n")
 	expected.WriteString("SyntaxError: EOL while scanning string literal\n")
 
-	test := RunTestData{
+	test := TestRunData{
 		lang:             "python",
 		code:             "print(\"Hi",
 		uniqueIdentifier: "TestRunBadPythonCode",
@@ -113,18 +113,11 @@ func TestRunBadPythonCode(t *testing.T) {
 
 }
 
-func (data *RunTestData) run(t *testing.T) {
+func (data *TestRunData) run(t *testing.T) {
 	t.Parallel()
 	t.Helper()
 
-	exe, err := executable.NewExecutable(
-		data.lang,
-		data.code,
-		data.uniqueIdentifier,
-	)
-	if err != nil {
-		t.Errorf("NewExecutable failed with the supported language %s", data.lang)
-	}
+	exe := getExecutable(data.lang, data.code, data.uniqueIdentifier, t)
 
 	out, err := exe.Run()
 	if err != nil {

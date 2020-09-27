@@ -14,14 +14,11 @@ func TestFileSystemAreDeletedAfterRun(t *testing.T) {
 	code := "print(\"Hello World!\")"
 	uniqueIdentifier := "TestFileSystemAreDeletedAfterRun"
 
-	exe, err := executable.NewExecutable(lang, code, uniqueIdentifier)
-	if err != nil {
-		t.Errorf("NewExecutable returned on error with the supported language %s", lang)
-	}
+	exe := getExecutable(lang, code, uniqueIdentifier, t)
 
 	fileLocation := filepath.Join("/securefs", uniqueIdentifier)
 
-	_, err = os.Stat(fileLocation)
+	_, err := os.Stat(fileLocation)
 	if err == nil {
 		t.Errorf("%s existed before Run() was called", fileLocation)
 	}
@@ -40,13 +37,10 @@ func TestCGroupFilesAreDeletedAfterRun(t *testing.T) {
 	code := "print(\"Hello World!\")"
 	uniqueIdentifier := "TestCGroupFilesAreDeletedAfterRun"
 
-	exe, err := executable.NewExecutable(lang, code, uniqueIdentifier)
-	if err != nil {
-		t.Fatalf("NewExecutable failed with a supported language %s", lang)
-	}
+	exe := getExecutable(lang, code, uniqueIdentifier, t)
 
 	fileLocation := filepath.Join("/sys/fs/cgroups/pids", uniqueIdentifier)
-	_, err = os.Stat(fileLocation)
+	_, err := os.Stat(fileLocation)
 	if err == nil {
 		t.Errorf("%s existed before Run() was called", fileLocation)
 	}
@@ -106,4 +100,13 @@ func getChar(s string, index int) byte {
 	}
 
 	return s[index]
+}
+
+func getExecutable(lang, code, uniqueIdentifier string, t *testing.T) executable.Executable {
+	t.Helper()
+	exe, err := executable.NewExecutable(lang, code, uniqueIdentifier)
+	if err != nil {
+		t.Errorf("NewExecutable failed returned an error with the given language %s", lang)
+	}
+	return exe
 }

@@ -14,12 +14,9 @@ func TestPutFileInBin(t *testing.T) {
 	code := "import os\nos.system(\"mkdir /bin/THIS_SHOULD_NOT_BE_HERE\")"
 	uniqueIdentifier := "TestPutFileInBin"
 
-	exe, err := executable.NewExecutable(lang, code, uniqueIdentifier)
-	if err != nil {
-		t.Errorf("NewExecutable failed with the supported language %s", lang)
-	}
+	exe := getExecutable(lang, code, uniqueIdentifier, t)
 
-	_, err = exe.Run()
+	_, err := exe.Run()
 	if err == nil {
 		t.Fatalf("%s should of failed but it did not", uniqueIdentifier)
 	}
@@ -39,12 +36,9 @@ func TestForkBomb(t *testing.T) {
 	code := "import os\nos.system(\"bomb() { bomb | bomb & }; bomb\")"
 	uniqueIdentifier := "TestForkBomb"
 
-	exe, err := executable.NewExecutable(lang, code, uniqueIdentifier)
-	if err != nil {
-		t.Errorf("NewExecutable failed with the supported language %s", lang)
-	}
+	exe := getExecutable(lang, code, uniqueIdentifier, t)
 
-	_, err = exe.Run()
+	_, err := exe.Run()
 	if err == nil {
 		t.Fatalf("%s should of failed but it did not", uniqueIdentifier)
 	}
@@ -63,4 +57,21 @@ func TestForkBomb(t *testing.T) {
 			actual,
 		)
 	}
+}
+
+func TestCGroupVisibility(t *testing.T) {
+	t.Parallel()
+	lang := "python"
+	code := "import os\nos.system(\"ls /sys/fs/cgroup\")"
+	uniqueIdentifier := "TestCGroupVisibility"
+
+	exe := getExecutable(lang, code, uniqueIdentifier, t)
+
+	actual, err := exe.Run()
+	if err != nil {
+		t.Fatalf("Run() failed for %s, and should not have.", uniqueIdentifier)
+	}
+
+	expected := ""
+	assertEquals(expected, actual, t)
 }

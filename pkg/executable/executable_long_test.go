@@ -25,16 +25,9 @@ func TestInfiniteRecursion(t *testing.T) {
 
 	lang := "java"
 	uniqueIdentifier := "TestInfiniteRecursion"
-	exec, err := executable.NewExecutable(
-		lang,
-		code.String(),
-		uniqueIdentifier,
-	)
-	if err != nil {
-		t.Error(err)
-	}
+	exe := getExecutable(lang, code.String(), uniqueIdentifier, t)
 
-	_, err = exec.Run()
+	_, err := exe.Run()
 
 	if err == nil {
 		t.Fatalf("%s Run did not produce an error.", uniqueIdentifier)
@@ -63,17 +56,9 @@ func TestInfiniteLoop(t *testing.T) {
 
 	lang := "python"
 	uniqueIdentifier := "TestInfiniteLoop"
-	exec, err := executable.NewExecutable(
-		lang,
-		code.String(),
-		uniqueIdentifier,
-	)
+	exe := getExecutable(lang, code.String(), uniqueIdentifier, t)
 
-	if err != nil {
-		t.Error(err)
-	}
-
-	_, err = exec.Run()
+	_, err := exe.Run()
 
 	expectedError := &executable.TimeLimitExceededError{
 		MaxTime: executable.MaxExecutableRunTime,
