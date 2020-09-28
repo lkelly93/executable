@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -13,7 +14,12 @@ func Setup(rootName string) error {
 	if err := setupPidsCGroup(cgroup, rootName); err != nil {
 		return err
 	}
+
 	if err := setupMemoryCGroup(cgroup, rootName); err != nil {
+		return err
+	}
+
+	if err := setupCPUCGroup(cgroup, rootName); err != nil {
 		return err
 	}
 
@@ -21,7 +27,7 @@ func Setup(rootName string) error {
 }
 
 //GetMemoryUsage gets the memory usage for the given executable.
-func GetMemoryUsage(rootName string) (string, error) {
+func GetMemoryUsage(rootName string) (int, error) {
 	memoryLoc := filepath.Join(
 		"/sys/fs/cgroup/memory/",
 		rootName,
@@ -29,10 +35,44 @@ func GetMemoryUsage(rootName string) (string, error) {
 	)
 	memoryUsage, err := ioutil.ReadFile(memoryLoc)
 	if err != nil {
-		return "", err
+		return -1, err
 	}
 
-	return strings.TrimSuffix(string(memoryUsage), "\n"), nil
+	memoryUsageString := strings.TrimSuffix(string(memoryUsage), "\n")
+	return strconv.Atoi(string(memoryUsageString))
+}
+
+//GetCPUTime gets the time the executable spent on the cpu in USER_HZ time.
+func GetCPUTime(rootName string) (int, error) {
+	timeLoc := filepath.Join(
+		"/sys/fs/cgroup/cpuacct/",
+		rootName,
+		"cpuacct.stat",
+	)
+
+	userHz, err := ioutil.ReadFile(timeLoc)
+	if err != nil {
+		return -1, err
+	}
+
+	// indexSlashN := strings.Index(string(userHz), "\n")
+	// userVal := string(userHz[:indexSlashN])
+	// userVal = strings.ReplaceAll(userVal, "user ", "")
+	// return strconv.Atoi(string(userVal))
+	return parseCPUSTatFile(string(userHz))
+}
+
+func parseCPUSTatFile(data string) (int, error) {
+
+	indexFirstNewLine := strings.Index(data, "\n")
+	firstLine := strings.ReplaceAll(data[:indexFirstNewLine], "user ", "")
+
+	user, err := strconv.Atoi(firstLine)
+	if err != nil {
+		return -1, err
+	}
+
+	return user, nil
 }
 
 //AddPIDToCGroup adds the given pid to all the implemented CGroups for a given
