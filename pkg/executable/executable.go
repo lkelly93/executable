@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lkelly93/executable/internal/cgroup"
 	"github.com/lkelly93/executable/internal/environment"
 	"github.com/lkelly93/executable/internal/runners"
 )
@@ -43,12 +44,12 @@ func NewExecutable(lang, code, uniqueIdentifier string) (Executable, error) {
 //Run will run the executable in a secure container. It returns the output
 //of the program and/or an error. See errors.go for more all the possible
 //errors it can return.
-func (state *executableState) Run() (string, error) {
+func (state *executableState) Run() (*Result, error) {
 	rootName := state.uniqueIdentifier
 	//Setup the executable's new root file system.
 	envData, err := environment.Setup(rootName)
 	if err != nil {
-		return "", fatalServerError(err, rootName)
+		return nil, fatalServerError(err, rootName)
 	}
 
 	//Create the runner file.
@@ -57,7 +58,7 @@ func (state *executableState) Run() (string, error) {
 		filepath.Join(envData.RootPath, "runner_files"),
 	)
 	if err != nil {
-		return "", fatalServerError(err, rootName)
+		return nil, fatalServerError(err, rootName)
 	}
 
 	//Create context with a timeout.
@@ -114,6 +115,22 @@ func (state *executableState) Run() (string, error) {
 
 	//Parse the output after run
 	output, outputErr := getOutput(stdOut, stdErr)
+	result := &Result{
+		Output: output,
+	}
+
+	if memUsage, err := cgroup.GetMemoryUsage(rootName); err != nil {
+		log.Printf("GetMemoryUsage returned %s\n.", err.Error())
+	} else {
+		result.MemoryUsage = memUsage
+	}
+
+	if cpuTime, err := cgroup.GetCPUTime(rootName); err != nil {
+		log.Println(err)
+	} else {
+		result.MemoryUsage = cpuTime
+	}
+
 	//Check if executor had a logger file. If so send it to log.Print
 	checkLoggerFile(envData.RootPath)
 	//Print the error to log if it exists.
@@ -130,9 +147,9 @@ func (state *executableState) Run() (string, error) {
 	}
 
 	if errCleanup := envData.CleanUp(); errCleanup != nil {
-		return output, fatalServerError(errCleanup, rootName)
+		return result, fatalServerError(errCleanup, rootName)
 	}
-	return output, errorOutput
+	return result, errorOutput
 }
 
 func fatalServerError(err error, uniqueID string) error {

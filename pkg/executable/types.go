@@ -10,7 +10,7 @@ const (
 
 //Executable represents programs that are ready to execute
 type Executable interface {
-	Run() (string, error)
+	Run() (*Result, error)
 }
 
 type executableState struct {
@@ -18,4 +18,12 @@ type executableState struct {
 	lang             string
 	uniqueIdentifier string
 	runner           runners.Runner
+}
+
+//Result is the value returned by Run(). It holds all the relevant information
+//for a given executable.
+type Result struct {
+	Output      string
+	MemoryUsage int
+	ComputeTime int
 }

@@ -131,7 +131,7 @@ func (data *TestRunData) run(t *testing.T) {
 			t.Errorf("Run() failed with the code %s and it should not have. -- Error:%s", data.code, err.Error())
 		}
 	}
-	assertEquals(out, data.expected, t)
+	assertEquals(out.Output, data.expected, t)
 }
 
 func getFileData(fileName string, t *testing.T) string {

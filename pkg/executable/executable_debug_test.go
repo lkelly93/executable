@@ -29,7 +29,9 @@ func TestDebug(t *testing.T) {
 		}
 	}
 
-	// if len(out) != 0 {
-	t.Errorf("Output:\n%s", out)
-	// }
+	if out != nil {
+		t.Errorf("Output:\n%s", out.Output)
+		t.Errorf("Compute Time:%dms", out.ComputeTime)
+		t.Errorf("Memory USaged:%dB", out.MemoryUsage)
+	}
 }

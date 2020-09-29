@@ -55,14 +55,10 @@ func GetCPUTime(rootName string) (int, error) {
 		return -1, err
 	}
 
-	// indexSlashN := strings.Index(string(userHz), "\n")
-	// userVal := string(userHz[:indexSlashN])
-	// userVal = strings.ReplaceAll(userVal, "user ", "")
-	// return strconv.Atoi(string(userVal))
-	return parseCPUSTatFile(string(userHz))
+	return parseCPUStatFile(string(userHz))
 }
 
-func parseCPUSTatFile(data string) (int, error) {
+func parseCPUStatFile(data string) (int, error) {
 
 	indexFirstNewLine := strings.Index(data, "\n")
 	firstLine := strings.ReplaceAll(data[:indexFirstNewLine], "user ", "")
