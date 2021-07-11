@@ -23,7 +23,8 @@ type executableState struct {
 //Result is the value returned by Run(). It holds all the relevant information
 //for a given executable.
 type Result struct {
-	Output      string
+	StdOut      string
+	StdErr      string
 	MemoryUsage int
 	ComputeTime int
 }

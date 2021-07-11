@@ -73,5 +73,5 @@ func TestCGroupVisibility(t *testing.T) {
 	}
 
 	expected := ""
-	assertEquals(expected, actual.Output, t)
+	assertEquals(expected, actual.StdOut, t)
 }

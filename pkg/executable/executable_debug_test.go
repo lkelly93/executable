@@ -30,7 +30,7 @@ func TestDebug(t *testing.T) {
 	}
 
 	if out != nil {
-		t.Errorf("Output:\n%s", out.Output)
+		t.Errorf("Output:\n%s", out.StdOut)
 		t.Errorf("Compute Time:%dms", out.ComputeTime)
 		t.Errorf("Memory USaged:%dB", out.MemoryUsage)
 	}
