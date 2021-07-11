@@ -34,7 +34,7 @@ func (ce *CompilationError) Is(err error) bool {
 	return ok
 }
 
-//TimeLimitExceededError is returned if the max the executable took to long to run
+//TimeLimitExceededError is returned if the executable took to long to run
 type TimeLimitExceededError struct {
 	MaxTime int
 }
@@ -71,7 +71,8 @@ type SystemError struct {
 }
 
 func (se *SystemError) Error() string {
-	return "Error during execution of the program, check server logs."
+	return fmt.Sprintf("%s\n", se.Err)
+	// return "Error during execution of the program, check server logs."
 }
 
 //Is Returns true if the given error is a SystemError

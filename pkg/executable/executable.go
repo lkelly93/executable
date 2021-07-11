@@ -113,7 +113,7 @@ func (state *executableState) Run() (*Result, error) {
 	//Run the executable
 	err = cmd.Run()
 
-	//Parse the output after run
+	//Get output and cpu/memory usage after run.
 	output, outputErr := getOutput(stdOut, stdErr)
 	result := &Result{
 		Output: output,
